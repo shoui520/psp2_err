@@ -1,8 +1,25 @@
 import json
+import subprocess
+from pathlib import Path
 
 import pytest
 
 from psp2_err.cli import main
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_source_launcher_runs_without_installation(tmp_path):
+    result = subprocess.run(
+        [str(PROJECT_ROOT / "psp2_err"), "C2-2000-2"],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "SCE_APPUTIL_ERROR_PARAMETER" in result.stdout
 
 
 def test_exact_lookup(capsys):
