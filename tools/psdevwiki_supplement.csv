@@ -1,0 +1,31 @@
+name,hex,code,remark
+,,C0-10931-4,failed (Invalid File).
+,,C0-10935-8,failed.
+,,C0-11274-6 ?or C0-11275-6?,"Could not install. (Encountered when installing Borderlands 2 DLC, downloaded with PKGj)"
+,,C0-11276-7,Could not save the image.
+SCE_APPMGR_INVALID_PARAM_FILE,,C0-11479-2,
+SCE_APPMGR_CORRUPT_PARAM_FILE (guessed name),,C0-11471-4,The files are corrupted. Occurs when no param.sfo in right directory.
+,,C0-13006-0,"""An error has occurred."" Occurs when bad Auth ID for decrypted app."
+,,C0-14478-4,failed.
+,,C0-14988-0,"""An error has occurred."" (NPXS10026 on PS Vita 3.300.041) https://www.psdevwiki.com/vita/File:sJQLX9d.jpg"
+SCE_KERNEL_ERROR_ILLEGAL_ELF_HEADER,0x80025001,C1-2613-2,Occurs when bad ehdr.e_type.
+SCE_KERNEL_ERROR_IOFILEMGR_ERROR,0x8002a000,C1-2703-2,"""An error has occurred."" Occurs when no eboot.bin file."
+SCE_KERNEL_ERROR_MODULEMGR_INVALID_TYPE,0x8002d00d,C1-2722-3,"Occurs when using invalid eboot.bin, for example eboot.bin of Manual as Package Installer."
+SCE_ERROR_ERRNO_ENOENT,0x80010002,C1-2738-0,"""An error has occurred."" Occurs when PFS encrypted files but no PFS mgr file. Occurs with bad Vitamin dumps."
+SCE_ERROR_FACILITY_REGISTRY_KERNEL,0x800D000E,C1-3473-7,
+,,C1-6775-5,"""An error has occured."" This happens when trying to run e.g. HENkaku homebrews while HENkaku is not activated."
+,,C1-7087-2,"""An error has occurred."" (NPXS19999 on PS Vita 3.300.041) https://www.psdevwiki.com/vita/File:un7yqDU.jpg"
+,,C2-11235-2,This video cannot be played.
+SCE_KERNEL_ERROR_UNSUPPORTED_ACTION (guessed name),,C2-12570-5,"""An error has occurred."" ""UNSUPPORTED_ACTION"". Shows up when you call a bad support_uri. Can occur with Maidumptool."
+,,C2-13240-0,You cannot download in the PS Vita.
+,,C2-13249-9,"""An error has occurred."" (Trying to download a video in the PS store)"
+,,C2-13700-1,"""An error has occurred."" Opening Near from Web browser with Mr.Gas' method of dumping games (PS Vita 3.300.041)."
+,,C2-14389-5,"""You cannot send or receive messages with this email account. Do you want to add this email account?"" Trying to refresh inbox from a yahoo or gmail account via the ""Other"" option for the email bubble after adding one on PS Vita 3.300.041. https://www.psdevwiki.com/vita/File:JvPvFJd.jpg"
+,,C2-14391-8,"""An error has occurred."" (NPXS10072 on PS Vita 3.300.041) https://www.psdevwiki.com/vita/File:F1n9Ucw.jpg"
+,,C2-14393-0,"""An error has occurred."" (NPXS10072 on PS Vita 3.300.041) https://www.psdevwiki.com/vita/File:MEjwMTj.jpg"
+,,C2-14399-6,"""An error has occurred."" Tried dumping Senran Kagura Estival Versus. Likely issue with firmware. Done on 3.300.041 but game requires at least 3.550.000."
+,,C2-14780-0,"""The saved data for this application is corrupt... Do you want to delete the saved data?"""
+,,C2-14919-4,"""Cannot display the page."" (Trying to reach 127.0.0.1 in Internet Browser via USB Ethernet adapter on PTEL-2004 3.300.041.) https://www.psdevwiki.com/vita/File:kCORRHv.jpg"
+,,C3-12062-1,Updater error code facility (reserved).
+SCE_ERROR_FACILITY_NP,0x80558350,NP-9974-9,
+SCE_NET_ERROR_ECONNREFUSED,0x8041013d,NW-2465-7,"""An error occurred."" or ""You cannot send or receive messages with this email account. Do you want to add this email account?"". Occured when trying to add either a yahoo or gmail account via ""Other"" option in the email bubble on PS Vita 3.300.041. https://www.psdevwiki.com/vita/File:cF7Z08p.jpg"
