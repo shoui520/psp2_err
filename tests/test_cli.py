@@ -30,6 +30,15 @@ def test_exact_lookup(capsys):
     assert "Could not be saved." in output
 
 
+@pytest.mark.parametrize("query", ["C2-12828-1", "0x80103909"])
+def test_firmware_lookup_with_community_remark(query, capsys):
+    assert main([query]) == 0
+    output = capsys.readouterr().out
+    assert "Hex:      0x80103909" in output
+    assert "Display:  C2-12828-1" in output
+    assert "An error occurred in the following applications." in output
+
+
 def test_unknown_numeric_value_is_decoded(capsys):
     assert main(["0x80107e42"]) == 1
     output = capsys.readouterr().out

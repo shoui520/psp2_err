@@ -26,12 +26,10 @@ from typing import Any, Iterable, Iterator, Optional, Sequence
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SDK_CSV = Path(
-    "/mnt/c/PATH/sony-psp2sdk/sdk/SDK Software/PSVITA/sdk/host_tools/"
-    "debugging/error_code/error_table.csv"
-)
+DEFAULT_SDK_CSV = Path("error_table.csv")
 DEFAULT_OUTPUT = ROOT / "src/psp2_err/data/errors.json"
 SUPPLEMENT = ROOT / "tools/psdevwiki_supplement.csv"
+FIRMWARE_MAPPINGS = ROOT / "src/psp2_err/data/firmware-mappings.csv"
 
 HENKAKU_API = "https://wiki.henkaku.xyz/api.php"
 HENKAKU_PAGE = "Error_codes"
@@ -237,6 +235,49 @@ def load_supplement(path: Path) -> list[RawRow]:
         ]
 
 
+def load_firmware_mappings(path: Path) -> list[RawRow]:
+    with path.open("r", encoding="utf-8", newline="") as stream:
+        rows = [RawRow("firmware-mappings", hex=row["hex"], code=row["code"])
+                for row in csv.DictReader(stream)]
+    if any(_normalize_exact_hex(row.hex) is None
+           or _extract_display_codes(row.code) != [row.code] for row in rows):
+        raise ValueError("invalid firmware mapping")
+    if len({row.hex for row in rows}) != len(rows) or len({row.code for row in rows}) != len(rows):
+        raise ValueError("duplicate firmware mapping")
+    return rows
+
+
+def add_firmware_mappings(merger: "Merger", rows: list[RawRow]) -> None:
+    for row in rows:
+        owner = merger.code_index.get(row.code.casefold())
+        if owner is not None and owner.hex not in (None, row.hex):
+            raise ValueError(f"firmware mapping conflicts with existing {row.code}: {owner.hex}")
+        merger.add(row)
+
+
+def merge_firmware_into_payload(payload: dict[str, Any], path: Path) -> dict[str, Any]:
+    """Enrich an existing database offline without losing names or wiki notes."""
+    merger = Merger()
+    merger.records = [MutableRecord(**{
+        key: list(value) if isinstance(value, list) else value
+        for key, value in record.items()
+    }) for record in payload["records"]]
+    merger._rebuild_indexes()
+    rows = load_firmware_mappings(path)
+    add_firmware_mappings(merger, rows)
+    result = dict(payload)
+    result["records"] = merger.serialize()
+    result["sources"] = [source for source in payload["sources"]
+                         if source["id"] != "firmware-mappings"] + [firmware_source(len(rows))]
+    return result
+
+
+def firmware_source(count: int) -> dict[str, Any]:
+    return {"id": "firmware-mappings", "firmware": "3.74", "rows": count,
+            "retrieval": "error_table.bin",
+            "sha256": "9fd6c046ef3f521cb2881126c01d373b4e6beab88f6a8a7c8f06a9b8c3dadccc"}
+
+
 class Merger:
     def __init__(self) -> None:
         self.records: list[MutableRecord] = []
@@ -414,6 +455,8 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     merger = Merger()
     for row in (*sdk_rows, *psdev_rows, *henkaku_rows):
         merger.add(row)
+    firmware_rows = load_firmware_mappings(args.firmware_mappings)
+    add_firmware_mappings(merger, firmware_rows)
 
     records = merger.serialize()
     _validate_sdk_rows(records, sdk_rows)
@@ -424,7 +467,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "sources": [
             {
                 "id": "sony-sdk",
-                "url": str(args.sdk_csv),
+                "file": "error_table.csv",
                 "rows": len(sdk_rows),
             },
             {
@@ -442,6 +485,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
                 **psdev_info,
                 "retrieval": psdev_method,
             },
+            firmware_source(len(firmware_rows)),
         ],
         "facilities": dict(sorted(facilities.items())),
         "facility_ranges": facility_ranges,
@@ -576,6 +620,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sdk-csv", type=Path, default=DEFAULT_SDK_CSV)
     parser.add_argument("--supplement", type=Path, default=SUPPLEMENT)
+    parser.add_argument("--firmware-mappings", type=Path, default=FIRMWARE_MAPPINGS)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--no-archive-fallback", action="store_true")
     return parser.parse_args(argv)

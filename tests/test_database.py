@@ -1,11 +1,14 @@
+import csv
+from pathlib import Path
+
 from psp2_err.database import load_database, parse_numeric_query
 
 
-def test_database_contains_all_three_sources():
+def test_database_contains_all_sources():
     database = load_database()
     assert database.schema_version == 2
     source_ids = {source["id"] for source in database.sources}
-    assert source_ids == {"sony-sdk", "henkaku", "psdevwiki"}
+    assert source_ids == {"sony-sdk", "henkaku", "psdevwiki", "firmware-mappings"}
     assert len(database.records) >= 2500
     assert len(database.facilities) >= 90
     assert len(database.facility_ranges) == 4
@@ -32,9 +35,37 @@ def test_lookup_by_all_common_identifier_forms():
 
 def test_community_only_display_code_is_embedded():
     match = load_database().lookup("C2-14391-8")[0]
-    assert match.hex is None
+    assert match.hex is not None
+    assert match in load_database().lookup(match.hex)
     assert any("NPXS10072" in remark.text for remark in match.remarks)
     assert "psdevwiki" in match.sources
+
+
+def test_all_firmware_mappings_resolve_in_both_directions():
+    database = load_database()
+    mapping = Path(__file__).resolve().parents[1] / "src/psp2_err/data/firmware-mappings.csv"
+    with mapping.open(newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert len(rows) == 15782
+    for row in rows:
+        by_hex = database.lookup(row["hex"])
+        by_display = database.lookup(row["code"])
+        assert any(record.hex == row["hex"] and row["code"] in record.codes
+                   and record in by_display for record in by_hex), row
+
+
+def test_firmware_mapping_preserves_wiki_remark_without_name():
+    record = load_database().lookup("0x80103909")[0]
+    assert record.codes == ("C2-12828-1",)
+    assert record.names == ()
+    assert any(remark.text == "An error occurred in the following applications."
+               and remark.source == "psdevwiki" for remark in record.remarks)
+
+
+def test_firmware_mapping_needs_no_name_or_remark():
+    record = load_database().lookup("0x80412190")[0]
+    assert record.codes == ("NW-2035-0",)
+    assert record.names == record.remarks == ()
 
 
 def test_henkaku_exact_code_and_range_are_embedded():
